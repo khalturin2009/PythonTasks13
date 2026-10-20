@@ -1,2 +1,0 @@
-# PythonTasks13
-Hello!
