@@ -1,5 +1,5 @@
 # ============================================================
-# ИГРА «ПОДЗЕМЕЛЬЕ: СОЛЯНЫЕ ШАХТЫ» — этап 7: враги подземелья
+# ИГРА «ПОДЗЕМЕЛЬЕ: СОЛЯНЫЕ ШАХТЫ» — этап 8: журнал как таблица
 # ============================================================
 
 import random
@@ -63,7 +63,7 @@ enemies = ["гуль", "скелет", "паук", "летучая мышь"]
 log = []
 
 # --- Главный цикл игры с полной защитой -----------
-menu_last = 7
+menu_last = 8
 outcome = "прерывание"
 
 try:
@@ -78,6 +78,7 @@ try:
         print("5 - постучать по стене")
         print("6 - тренировка")
         print("7 - спуститься глубже")
+        print("8 - таблица лидеров")
         print("0 - выйти из подземелья")
 
         while True:
@@ -152,25 +153,36 @@ try:
                         hero_strikes += 1
                         if hero_strikes % 3 == 0:
                             hit_damage = crit_damage
-                            print(f"Раунд {round_n}: вы наносите {hit_damage:.1f} — критический удар!")
+                            line = f"Раунд {round_n}: вы наносите {hit_damage:.1f} — критический удар!"
                         else:
                             hit_damage = damage
-                            print(f"Раунд {round_n}: вы наносите {hit_damage:.1f}.")
+                            line = f"Раунд {round_n}: вы наносите {hit_damage:.1f}."
                         enemy_hp -= hit_damage
                         if enemy_hp <= 0:
-                            print(f"{enemy} повержен!")
-                            log.append(f"round {round_n}: hero -{hit_damage:.1f}, {enemy} -0")
-                            break
-                        print(f"Здоровье {enemy}: {enemy_hp:.1f}.")
-                        enemy_damage = random.randint(2, 6)
-                        health -= enemy_damage
-                        log.append(f"round {round_n}: hero -{hit_damage:.1f}, {enemy} -{enemy_damage}")
-                        print(f"{enemy} бьёт в ответ на {enemy_damage}. Ваше здоровье: {health}.")
+                            line += " Враг падает."
+                            log.append([round_n, hit_damage, 0])
+                        else:
+                            line += f" Здоровье {enemy}: {enemy_hp:.1f}."
+                            enemy_damage = random.randint(2, 6)
+                            health -= enemy_damage
+                            line += f" {enemy} бьёт в ответ на {enemy_damage}."
+                            log.append([round_n, hit_damage, enemy_damage])
+                        print(line)
                     if enemy_hp <= 0:
                         enemies.remove(enemy)
                         print(f"{enemy} побеждён! В подземелье осталось врагов: {len(enemies)}.")
                     print(f"Бой: {round_n} раундов.")
-                    print(f"Последняя запись журнала: {log[-1]}")
+                    print(f"Урон героя за последний раунд: {log[-1][1]:.1f}")
+            case "8":
+                if not log:
+                    print("Вы ещё не сражались.")
+                else:
+                    top = sorted(log, key=lambda r: r[1], reverse=True)[:3]
+                    print("Таблица лидеров (урон героя):")
+                    for i in range(len(top)):
+                        print(f"{i + 1}. Раунд {top[i][0]}: {top[i][1]:.1f}")
+                    worst = max(log, key=lambda r: r[2])
+                    print(f"Самый сильный удар врага: {worst[2]} (раунд {worst[0]}).")
             case "0":
                 print("Вы поднимаетесь обратно к свету. Шахта остаётся позади.")
                 outcome = "выход"
@@ -200,4 +212,10 @@ finally:
         print(f"Забег окончен, {hero_name}. Действий совершено: {actions}.")
     else:
         print(f"Сеанс прерван, {hero_name}. Действий совершено: {actions}.")
+    total = sum(r[1] for r in log)
+    rounds = len(log)
+    if rounds > 0:
+        print(f"Урон: {total:.1f} за {rounds} раундов, в среднем {total / rounds:.1f}.")
+    else:
+        print("В этом забеге не было боёв.")
     print(frame)
